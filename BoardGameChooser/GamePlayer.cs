@@ -9,6 +9,8 @@ namespace BoardGameChooser
     public static class Globals
     {
         public static PlayerList globalPlayerList = new PlayerList();
+        public static GameList globalGameList = new GameList();
+        public static List<string> columnList = new List<string>();
     }
 
     

@@ -23,28 +23,31 @@ namespace BoardGameChooser
         private void button1_Click(object sender, EventArgs e)
         {
             DataTable gameTable = MakeGameTable();
-            List<string> columnList = new List<string>();
+            Globals.columnList.Clear();
 
             using (var reader = new StreamReader(@"C:\Users\brian\Documents\GitHub\BoardGameChooser\Geekway2018.csv"))
             {
+                // Loop through the rows in the csv table
                 int gameCount = 0;
                 while (!reader.EndOfStream)
                 {
+                    // Parse the current row of the csv table
                     var line = reader.ReadLine();
                     var values = line.Split(',');
 
+                    
                     DataRow newRow = gameTable.NewRow();
                     for (int i = 0; i < values.Length; i++)
                     {
                         if(gameCount == 0)
                         {
-                            columnList.Add(values[i]);
+                            Globals.columnList.Add(values[i]);
                         }
                         else
                         {
                             if (values[i] != "")
                             {
-                                newRow[columnList[i]] = values[i];
+                                newRow[Globals.columnList[i]] = values[i];
                             }
                         }
                     }
@@ -52,8 +55,14 @@ namespace BoardGameChooser
                     if (gameCount != 0)
                     {
                         gameTable.Rows.Add(newRow);
+
+                        // Add this game to the GameList
+                        BoardGame newGame = new BoardGame();
+                        newGame.gameTitle = newRow["Title"] as string;
+                        Int32.TryParse(newRow["Min"] as string, out newGame.minPlayers);
+                        Int32.TryParse(newRow["Max"] as string, out newGame.maxPlayers);
+                        Globals.globalGameList.AddGame(newGame);
                     }
-                    
 
                     gameCount++;
                 }
@@ -69,37 +78,6 @@ namespace BoardGameChooser
                 PlayersListbox.Items.Add(player.playerName);
             }
 
-
-            //for (int i = 0; i < ConventionEntry.Count; i++)
-            //{
-            //    List<string> GameEntry = ConventionEntry[i];
-            //    string GameText = "";
-            //    double gameInterest = 0.0;
-
-            //    for (int j = 0; j < GameEntry.Count; j++)
-            //    {
-            //        string currentText = GameEntry[j];
-
-
-            //        if(currentText == "Eh")
-            //        {
-            //            gameInterest += 0.5;
-            //        }else if (currentText == "Yes")
-            //        {
-            //            gameInterest += 1.0;
-            //        }
-            //        else if (currentText == "Woo")
-            //        {
-            //            gameInterest += 1.25;
-            //        }
-
-            //        string paddedText = currentText.PadRight(25).Substring(0, 25);
-            //        GameText += paddedText + "\t";
-            //    }
-
-            //    GameText = gameInterest.ToString("#.##") + "\t" + GameText;
-            //    listBox1.Items.Add(GameText);
-            //}
         }
 
 
@@ -173,8 +151,59 @@ namespace BoardGameChooser
             return gameTable;
         }
 
-        private void button2_Click(object sender, EventArgs e)
+        private void chooseGame_Click(object sender, EventArgs e)
         {
+            // Clear the gameValues for all the games
+            foreach (BoardGame currentGame in Globals.globalGameList.gameList)
+            {
+                currentGame.gameValue = 0.0;
+            }
+
+            // Create a list of the active players
+            List<string> activePlayerList = new List<string>();
+            foreach (var playerEntry in PlayersListbox.SelectedItems)
+            {
+                activePlayerList.Add(playerEntry.ToString());
+            }
+
+
+            foreach (DataGridViewRow row in dataGridView1.Rows)
+            {
+                string currentTitle = row.Cells["Title"].Value as string;
+                BoardGame currentGame = Globals.globalGameList.GetGame(currentTitle);
+
+                foreach (string currentPlayerName in activePlayerList)
+                {
+                    string playerRating = row.Cells[currentPlayerName].Value as string;
+
+                    if(playerRating == "Woo")
+                    {
+                        currentGame.gameValue += 1.25;
+                    }else if (playerRating == "Yes")
+                    {
+                        currentGame.gameValue += 1.0;
+                    }
+                    else if (playerRating == "Eh")
+                    {
+                        currentGame.gameValue += 0.5;
+                    }
+
+                }
+
+                //foreach (DataGridViewCell cell in row.Cells)
+                //{
+                //    //do operations with cell
+                //}
+            }
+
+            Globals.globalGameList.gameList.Sort();
+
+            BestListbox.Items.Clear();
+            foreach (BoardGame currentGame in Globals.globalGameList.gameList)
+            {
+                string displayText = currentGame.gameTitle + ": " + currentGame.gameValue;
+                BestListbox.Items.Add(displayText);
+            }
 
         }
 
