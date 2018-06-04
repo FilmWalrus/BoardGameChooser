@@ -59,8 +59,25 @@ namespace BoardGameChooser
                         // Add this game to the GameList
                         BoardGame newGame = new BoardGame();
                         newGame.gameTitle = newRow["Title"] as string;
-                        Int32.TryParse(newRow["Min"] as string, out newGame.minPlayers);
-                        Int32.TryParse(newRow["Max"] as string, out newGame.maxPlayers);
+
+                        try
+                        {
+                            newGame.minPlayers = Int32.Parse(newRow["Min"].ToString());
+                        }
+                        catch
+                        {
+                            newGame.minPlayers = 0;
+                        }
+
+                        try
+                        {
+                            newGame.maxPlayers = Int32.Parse(newRow["Max"].ToString());
+                        }
+                        catch
+                        {
+                            newGame.maxPlayers = 0;
+                        }
+
                         Globals.globalGameList.AddGame(newGame);
                     }
 
@@ -151,6 +168,10 @@ namespace BoardGameChooser
             return gameTable;
         }
 
+
+
+
+
         private void chooseGame_Click(object sender, EventArgs e)
         {
             // Clear the gameValues for all the games
@@ -167,10 +188,22 @@ namespace BoardGameChooser
             }
 
 
+            // Get the score for each game based on user ratings
             foreach (DataGridViewRow row in dataGridView1.Rows)
             {
                 string currentTitle = row.Cells["Title"].Value as string;
                 BoardGame currentGame = Globals.globalGameList.GetGame(currentTitle);
+                if(currentGame == null)
+                {
+                    continue;
+                }
+
+                // Only look at games that support this number of players
+                if(activePlayerList.Count > currentGame.maxPlayers || activePlayerList.Count < currentGame.minPlayers)
+                {
+                    continue;
+                }
+
 
                 foreach (string currentPlayerName in activePlayerList)
                 {
@@ -201,8 +234,11 @@ namespace BoardGameChooser
             BestListbox.Items.Clear();
             foreach (BoardGame currentGame in Globals.globalGameList.gameList)
             {
-                string displayText = currentGame.gameTitle + ": " + currentGame.gameValue;
-                BestListbox.Items.Add(displayText);
+                if (currentGame.gameValue > 0.0)
+                {
+                    string displayText = currentGame.gameTitle + ": " + currentGame.gameValue;
+                    BestListbox.Items.Add(displayText);
+                }
             }
 
         }

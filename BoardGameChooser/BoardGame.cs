@@ -75,6 +75,8 @@ namespace BoardGameChooser
         public string gameType = "";
 
         public double gameValue = 0.0;
+
+        public List<GamePlayer> playerRatings = new List<GamePlayer>();
     }
 
     

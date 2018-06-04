@@ -54,7 +54,7 @@ namespace BoardGameChooser
 
 
 
-    public class GamePlayer
+    public class GamePlayer : IComparable
     {
         public GamePlayer()
         {
@@ -68,8 +68,25 @@ namespace BoardGameChooser
             isPlaying = false;
         }
 
+        public int CompareTo(GamePlayer other)
+        {
+            return gameRating.CompareTo(other.gameRating);
+        }
+
+        public int CompareTo(object obj)
+        {
+            GamePlayer p = obj as GamePlayer;
+            if (this.gameRating == p.gameRating)
+                return 0;
+            else if (this.gameRating < p.gameRating)
+                return 1;
+            else
+                return -1;
+        }
+
         public string playerName;
         public bool isPlaying;
+        public double gameRating;
     }
 
 
